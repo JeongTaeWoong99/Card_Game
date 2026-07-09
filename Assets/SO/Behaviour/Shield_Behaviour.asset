@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9986fcbf0224ea14dabe84c2eafd741f, type: 3}
+  m_Name: Shield_Behaviour
+  m_EditorClassIdentifier: Assembly-CSharp::ShieldBehaviour
+  _type: 4
+  _waitTurn: 0
+  _displayName: "\uBC29\uD328"
+  _attackDescription: "\uD604\uC7AC HP \uC808\uBC18\uB9CC\uD07C \uD53C\uD574. \uC0C1\uB300\uB3C4
+    \uD604\uC7AC HP \uC808\uBC18\uB9CC\uD07C \uBC18\uACA9."
+  _abilityDescription: "\uBC1B\uB294 \uBAA8\uB4E0 \uD53C\uD574 -2(\uCD5C\uC18C 1).
+    \uC801 \uADFC\uC811 \uACF5\uACA9\uC740 \uC774 \uCE74\uB4DC\uB9CC \uB178\uB9BC(\uB3C4\uBC1C)."
+  _damageReduction: 2

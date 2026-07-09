@@ -21,10 +21,11 @@ public class CardManager : MonoService<ICardManager>, ICardManager
     private const float WarningFadeTime    = 1f;    // 경고 페이드 아웃 시간
 
     [CenterHeader("< 참조 >")]
-    [SerializeField] private ItemSO     _itemSO;
-    [SerializeField] private SkillSO    _skillSO;
-    [SerializeField] private GameObject _cardPrefab;
-    [SerializeField] private GameObject _skillCardPrefab;
+    [SerializeField] private ItemSO                  _itemSO;
+    [SerializeField] private SkillSO                 _skillSO;
+    [SerializeField] private CardBehaviourRegistrySO _behaviourRegistry;
+    [SerializeField] private GameObject              _cardPrefab;
+    [SerializeField] private GameObject              _skillCardPrefab;
 
     [CenterHeader("< 손패 >")]
     [SerializeField] private List<Card>      _myCards;
@@ -91,6 +92,15 @@ public class CardManager : MonoService<ICardManager>, ICardManager
             var turn = Services.Get<ITurnManager>();
             return turn.IsBattlePhase && turn.myTurn && !turn.isLoading;
         }
+    }
+
+    // 서비스 등록(베이스) + 카드 행동 매핑 초기화 (Unity 메시지)
+    // 매핑은 모든 Start(카드 Setup에서 첫 접근)보다 먼저 준비돼야 하므로 Awake에서 구성한다
+    protected override void Awake()
+    {
+        base.Awake();
+
+        CardBehaviours.Init(_behaviourRegistry);
     }
 
     // 덱 생성 + 카드 분배 이벤트 구독 (Unity 메시지)

@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 960c012089c693e4e92e2a522dee97f4, type: 3}
+  m_Name: CardBehaviourRegistry
+  m_EditorClassIdentifier: Assembly-CSharp::CardBehaviourRegistrySO
+  _behaviours:
+  - {fileID: 11400000, guid: 5738b445c2ab9ba4e8ca6011de9f2945, type: 2}
+  - {fileID: 11400000, guid: 6755f6d760cf4184a91527e8af47f8cd, type: 2}
+  - {fileID: 11400000, guid: a2893756bc799174f9d3014e46b44eec, type: 2}
+  - {fileID: 11400000, guid: 635ba25f72974f744b8571ea8cbc5b48, type: 2}
+  - {fileID: 11400000, guid: 6a666201d3616ad44a44126443506fa3, type: 2}
+  - {fileID: 11400000, guid: 851be689da108ff4db11dd035e8aa168, type: 2}

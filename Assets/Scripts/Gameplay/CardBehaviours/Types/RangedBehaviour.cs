@@ -1,15 +1,10 @@
 using System.Collections;
 using UnityEngine;
 
-// 원거리 — 반격 없음·도발 무시, 후방에서 견제 피해. 배치 후 1턴 대기.
+// 원거리 — 반격 없음·도발 무시, 후방에서 견제 피해. 데이터(대기 1턴 등)는 베이스 직렬화 필드에서 편집한다.
+[CreateAssetMenu(fileName = "RangedBehaviour", menuName = "Scriptable Object/Card Behaviour/Ranged")]
 public class RangedBehaviour : CardBehaviour
 {
-    public override int    WaitTurn    => 1;
-    public override string DisplayName => "원거리";
-
-    protected override string AttackDescription  => "현재 HP 절반만큼 피해. 반격 없음. 도발 무시(방패를 건너뛰고 공격).";
-    protected override string AbilityDescription => "후방에 있을 때, 내 턴 시작 시 적 전방 무작위 1장에 공격력의 1/3(소수점 버림) 피해.";
-
     // 도발(방패)을 무시하고 모든 적을 공격할 수 있다
     public override bool IgnoresTaunt => true;
 

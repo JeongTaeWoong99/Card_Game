@@ -2,15 +2,26 @@ using System.Collections;
 using UnityEngine;
 using DG.Tweening;
 
-// 카드 타입별 행동/표시의 베이스. 공통 텍스트 포맷(<공격>/<능력>·대기 안내)을 여기서 처리하고,
-// 타입별 원본 데이터(이름·설명·대기턴)는 파생 클래스가 제공한다 (Template Method).
-public abstract class CardBehaviour : ICardBehaviour
+// 카드 타입별 행동/표시의 베이스(ScriptableObject). 공통 텍스트 포맷(<공격>/<능력>·대기 안내)을 여기서 처리하고,
+// 타입별 원본 데이터(이름·설명·대기턴·튜닝 수치)는 인스펙터에서 편집한다. 로직은 파생 SO가 override 한다 (Template Method + Strategy).
+public abstract class CardBehaviour : ScriptableObject, ICardBehaviour
 {
-    public abstract int    WaitTurn    { get; }
-    public abstract string DisplayName { get; }
+    [CenterHeader("< 공통 데이터 >")]
+    [SerializeField] private ECardType _type;        // 레지스트리(CardBehaviourRegistrySO)가 ECardType → 이 SO로 매핑하는 키
+    [SerializeField] private int       _waitTurn;    // 전방 배치 후 공격 가능까지 보내야 하는 자기 턴 수
+    [SerializeField] private string    _displayName; // 카드에 표시할 속성 한글 이름
 
-    protected abstract string AttackDescription  { get; }
-    protected abstract string AbilityDescription { get; }
+    [TextArea] [SerializeField] private string _attackDescription;  // <공격> 본문 (대기 안내는 AttackText가 덧붙인다)
+    [TextArea] [SerializeField] private string _abilityDescription; // <능력> 본문
+
+    // 레지스트리가 이 SO를 어떤 속성으로 등록할지 결정하는 키 (CardBehaviourRegistrySO가 호출)
+    public ECardType Type => _type;
+
+    public int    WaitTurn    => _waitTurn;
+    public string DisplayName => _displayName;
+
+    protected string AttackDescription  => _attackDescription;
+    protected string AbilityDescription => _abilityDescription;
 
     // <공격> 표기 + 끝에 공격 대기시간 안내를 붙인다
     public string AttackText

@@ -4318,8 +4318,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _fastMode: 1
-  isLoading: 0
-  myTurn: 0
   phase: 0
 --- !u!4 &922764742
 Transform:
@@ -6710,6 +6708,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _itemSO: {fileID: 11400000, guid: be9a250f907170f4b8a4f48afc791ecf, type: 2}
   _skillSO: {fileID: 11400000, guid: 338015d4fde04ca43b3facdf1cf48658, type: 2}
+  _behaviourRegistry: {fileID: 11400000, guid: 340b78298d7137d4e9cf500517bdfabb, type: 2}
   _cardPrefab: {fileID: 3658768268321993076, guid: 8afe1e89c4c409f4b9e32c13cc96f4c5, type: 3}
   _skillCardPrefab: {fileID: 3658768268321993076, guid: c57d5bc274ea99b4a83ada699136c8ed, type: 3}
   _myCards: []
