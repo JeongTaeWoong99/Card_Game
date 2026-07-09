@@ -3,7 +3,7 @@ using UnityEngine;
 
 // 보드(전장) 위의 마우스 입력을 해석한다 — 세팅 단계의 카드 이동/배치, 전투 단계의 공격자·타겟 선택, 스킬 타겟 피킹.
 // 보드 상태(행 리스트·정렬·승급)는 EntityManager가 소유하고, 이 컨트롤러는 입력 → 보드 조작 오케스트레이션만 담당한다.
-public class BoardInputController : MonoService<IBoardInput>, IBoardInput
+public class BoardInputController : MonoService<BoardInputController>
 {
     [CenterHeader("< 타겟 표시 >")]
     [SerializeField] private GameObject _targetPicker;
@@ -28,7 +28,7 @@ public class BoardInputController : MonoService<IBoardInput>, IBoardInput
     {
         get
         {
-            var turn = Services.Get<ITurnManager>();
+            var turn = Services.Get<TurnManager>();
             return turn.IsBattlePhase && turn.myTurn && !turn.isLoading;
         }
     }
@@ -42,9 +42,9 @@ public class BoardInputController : MonoService<IBoardInput>, IBoardInput
     // 엔티티 누름 — 세팅 단계면 이동 시작, 전투 단계면 공격자 선택 (Entity.OnMouseDown이 호출)
     public void EntityMouseDown(Entity entity)
     {
-        if (Services.Get<ITurnManager>().IsSetupPhase)
+        if (Services.Get<TurnManager>().IsSetupPhase)
         {
-            if (!Services.Get<ITurnManager>().isLoading)
+            if (!Services.Get<TurnManager>().isLoading)
             {
                 BeginSetupMove(entity);
             }
@@ -105,11 +105,11 @@ public class BoardInputController : MonoService<IBoardInput>, IBoardInput
         {
             _selectEntity = null;
             _targetPickEntity = null;
-            Services.Get<ICardManager>().HideDamagePreview();
+            Services.Get<CardManager>().HideDamagePreview();
             return;
         }
 
-        if (Services.Get<ITurnManager>().IsSetupPhase)
+        if (Services.Get<TurnManager>().IsSetupPhase)
         {
             EndSetupMove();
 
@@ -124,19 +124,19 @@ public class BoardInputController : MonoService<IBoardInput>, IBoardInput
         if (_selectEntity && _targetPickEntity && _selectEntity.attackable)
         {
             // 적 전방에 방패형(도발)이 있으면 근접 타입은 방패형만 공격할 수 있다 (원거리는 예외)
-            if (Services.Get<IBoardState>().CanMeleeTarget(_selectEntity, _targetPickEntity))
+            if (Services.Get<EntityManager>().CanMeleeTarget(_selectEntity, _targetPickEntity))
             {
-                Services.Get<ICombatSystem>().Attack(_selectEntity, _targetPickEntity);
+                Services.Get<CombatSystem>().Attack(_selectEntity, _targetPickEntity);
             }
             else
             {
-                Services.Get<ICardManager>().ShowWarning("전방에 도발(방패) 타입이 있으면 먼저 처치해야 다른 적을 공격할 수 있습니다.\n(원거리 타입은 도발을 무시하고 모든 적을 공격할 수 있습니다.)");
+                Services.Get<CardManager>().ShowWarning("전방에 도발(방패) 타입이 있으면 먼저 처치해야 다른 적을 공격할 수 있습니다.\n(원거리 타입은 도발을 무시하고 모든 적을 공격할 수 있습니다.)");
             }
         }
 
         _selectEntity     = null;
         _targetPickEntity = null;
-        Services.Get<ICardManager>().HideDamagePreview(); // 공격 실행/취소 시 딜 예측 숨김
+        Services.Get<CardManager>().HideDamagePreview(); // 공격 실행/취소 시 딜 예측 숨김
     }
 
     // 드래그 — 세팅 단계면 집어든 카드를 마우스로 이동, 전투 단계면 상대 앞줄을 타겟 지정 (Entity.OnMouseDrag이 호출)
@@ -145,16 +145,16 @@ public class BoardInputController : MonoService<IBoardInput>, IBoardInput
         if (UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject())
         {
             _targetPickEntity = null;
-            Services.Get<ICardManager>().HideDamagePreview();
+            Services.Get<CardManager>().HideDamagePreview();
 
-            if (Services.Get<ITurnManager>().IsSetupPhase && _moveEntity != null)
+            if (Services.Get<TurnManager>().IsSetupPhase && _moveEntity != null)
             {
                 _moveEntity.MoveTransform(Utils.MousePos, false);
             }
             return;
         }
 
-        if (Services.Get<ITurnManager>().IsSetupPhase)
+        if (Services.Get<TurnManager>().IsSetupPhase)
         {
             if (_moveEntity != null)
             {
@@ -185,12 +185,12 @@ public class BoardInputController : MonoService<IBoardInput>, IBoardInput
         // 타겟이 잡히면 딜 교환 예측을 표시하고, 없으면 숨긴다
         if (existTarget)
         {
-            Services.Get<ICardManager>().ShowDamagePreview(_selectEntity, _targetPickEntity);
+            Services.Get<CardManager>().ShowDamagePreview(_selectEntity, _targetPickEntity);
         }
         else
         {
             _targetPickEntity = null;
-            Services.Get<ICardManager>().HideDamagePreview();
+            Services.Get<CardManager>().HideDamagePreview();
         }
     }
 
@@ -198,11 +198,11 @@ public class BoardInputController : MonoService<IBoardInput>, IBoardInput
     private void BeginSetupMove(Entity entity)
     {
         _moveEntity    = entity;
-        _moveFromFront = Services.Get<IBoardState>().GetRow(true, true).Contains(entity);
-        _moveFromIndex = Services.Get<IBoardState>().GetRow(true, _moveFromFront).IndexOf(entity);
+        _moveFromFront = Services.Get<EntityManager>().GetRow(true, true).Contains(entity);
+        _moveFromIndex = Services.Get<EntityManager>().GetRow(true, _moveFromFront).IndexOf(entity);
 
-        Services.Get<IBoardState>().GetRow(true, _moveFromFront).Remove(entity);
-        Services.Get<IBoardState>().EntityAlignment(true, _moveFromFront);
+        Services.Get<EntityManager>().GetRow(true, _moveFromFront).Remove(entity);
+        Services.Get<EntityManager>().EntityAlignment(true, _moveFromFront);
         entity.GetComponent<Order>()?.SetMostFrontOrder(true); // 드래그 동안 위로
     }
 
@@ -215,9 +215,9 @@ public class BoardInputController : MonoService<IBoardInput>, IBoardInput
         }
 
         bool         tFront = BoardLayout.IsMyFrontRow(Utils.MousePos.y);
-        List<Entity> tRow   = Services.Get<IBoardState>().GetRow(true, tFront);
+        List<Entity> tRow   = Services.Get<EntityManager>().GetRow(true, tFront);
 
-        if (Services.Get<IBoardPlacement>().RowRealCount(true, tFront) < EntityManager.MaxRow)
+        if (Services.Get<BoardPlacement>().RowRealCount(true, tFront) < EntityManager.MaxRow)
         {
             InsertEntitySorted(tRow, _moveEntity, tFront); // 빈 자리에 삽입(같은 행 재배치 포함)
         }
@@ -226,8 +226,8 @@ public class BoardInputController : MonoService<IBoardInput>, IBoardInput
             SwapIntoFullRow(_moveEntity, tFront);          // 가득 찬 행이면 스왑
         }
 
-        Services.Get<IBoardState>().EntityAlignment(true, true);
-        Services.Get<IBoardState>().EntityAlignment(true, false);
+        Services.Get<EntityManager>().EntityAlignment(true, true);
+        Services.Get<EntityManager>().EntityAlignment(true, false);
         _moveEntity = null;
     }
 
@@ -242,7 +242,7 @@ public class BoardInputController : MonoService<IBoardInput>, IBoardInput
     // 가득 찬 대상 행에서 마우스와 가장 가까운 카드를 골라, 그 자리를 이동 카드와 맞바꾼다
     private void SwapIntoFullRow(Entity entity, bool tFront)
     {
-        var tRow = Services.Get<IBoardState>().GetRow(true, tFront);
+        var tRow = Services.Get<EntityManager>().GetRow(true, tFront);
 
         Entity nearest = tRow[0];
         float  best    = Mathf.Abs(nearest.transform.position.x - Utils.MousePos.x);
@@ -260,7 +260,7 @@ public class BoardInputController : MonoService<IBoardInput>, IBoardInput
         tRow[nearestIndex] = entity; // 대상 슬롯에 이동 카드
         entity.SetRowState(tFront);
 
-        var origRow = Services.Get<IBoardState>().GetRow(true, _moveFromFront);
+        var origRow = Services.Get<EntityManager>().GetRow(true, _moveFromFront);
         origRow.Insert(Mathf.Clamp(_moveFromIndex, 0, origRow.Count), nearest); // 원래 자리에 교환 카드
         nearest.SetRowState(_moveFromFront);
     }

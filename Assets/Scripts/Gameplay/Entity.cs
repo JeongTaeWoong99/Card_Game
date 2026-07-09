@@ -208,7 +208,7 @@ public class Entity : MonoBehaviour
             return;
         }
 
-        Services.Get<ICombatSystem>().ShowHealPopup(amount, transform);
+        Services.Get<CombatSystem>().ShowHealPopup(amount, transform);
     }
 
     // 자기 턴 종료 시 호출 — 한시 버프의 남은 턴을 1 줄이고, 0이 된 버프는 HP에서 되돌린다
@@ -282,7 +282,7 @@ public class Entity : MonoBehaviour
 
         if (isMine && !isEmpty)
         {
-            Services.Get<IBoardInput>().EntityMouseDown(this);
+            Services.Get<BoardInputController>().EntityMouseDown(this);
         }
     }
 
@@ -290,11 +290,11 @@ public class Entity : MonoBehaviour
     private void OnMouseUp()
     {
         // 손가락을 떼면(터치) 확대 미리보기를 해제한다 — OnMouseExit가 터치 릴리스에서 호출되지 않는 문제 대응
-        Services.Get<ICardManager>().HideFieldPreview(this);
+        Services.Get<CardManager>().HideFieldPreview(this);
 
         if (isMine && !isEmpty)
         {
-            Services.Get<IBoardInput>().EntityMouseUp();
+            Services.Get<BoardInputController>().EntityMouseUp();
         }
     }
 
@@ -303,7 +303,7 @@ public class Entity : MonoBehaviour
     {
         if (isMine && !isEmpty)
         {
-            Services.Get<IBoardInput>().EntityMouseDrag();
+            Services.Get<BoardInputController>().EntityMouseDrag();
         }
     }
 
@@ -314,13 +314,13 @@ public class Entity : MonoBehaviour
 
         if (!isEmpty)
         {
-            Services.Get<ICardManager>().ShowFieldPreview(this);
+            Services.Get<CardManager>().ShowFieldPreview(this);
         }
     }
 
     // 마우스 벗어남 — 미리보기 숨김 (Unity 마우스 메시지)
     private void OnMouseExit()
     {
-        Services.Get<ICardManager>().HideFieldPreview(this);
+        Services.Get<CardManager>().HideFieldPreview(this);
     }
 }

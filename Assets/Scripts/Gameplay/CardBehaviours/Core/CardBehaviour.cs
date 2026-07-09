@@ -52,7 +52,7 @@ public abstract class CardBehaviour : ScriptableObject, ICardBehaviour
     {
         attacker.GetComponent<Order>().SetMostFrontOrder(true);
 
-        ICombatSystem cs = Services.Get<ICombatSystem>();
+        CombatSystem cs = Services.Get<CombatSystem>();
 
         DOTween.Sequence()
             .Append(attacker.transform.DOMove(defender.originPos, CombatSystem.MoveTime)).SetEase(Ease.InSine)

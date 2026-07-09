@@ -88,7 +88,7 @@ public class Card : MonoBehaviour
 
         if (_isFront)
         {
-            Services.Get<ICardManager>().CardMouseOver(this);
+            Services.Get<CardManager>().CardMouseOver(this);
         }
     }
 
@@ -97,7 +97,7 @@ public class Card : MonoBehaviour
     {
         if (_isFront)
         {
-            Services.Get<ICardManager>().CardMouseExit(this);
+            Services.Get<CardManager>().CardMouseExit(this);
         }
     }
 
@@ -108,7 +108,7 @@ public class Card : MonoBehaviour
 
         if (_isFront)
         {
-            Services.Get<ICardManager>().CardMouseDown();
+            Services.Get<CardManager>().CardMouseDown();
         }
     }
 
@@ -117,7 +117,7 @@ public class Card : MonoBehaviour
     {
         if (_isFront)
         {
-            Services.Get<ICardManager>().CardMouseUp();
+            Services.Get<CardManager>().CardMouseUp();
         }
     }
 }

@@ -14,7 +14,7 @@ public class RangedBehaviour : CardBehaviour
     // 원거리 공격 — 제자리에서 화살을 발사하고, 화살이 도착했을 때만 대상에 현재 HP 절반 피해(반격 X)
     public override void Attack(Entity attacker, Entity defender)
     {
-        ICombatSystem cs = Services.Get<ICombatSystem>();
+        CombatSystem cs = Services.Get<CombatSystem>();
         int rawDamage = CombatSystem.CalcDamage(attacker.health, CombatSystem.DamageRatio);
 
         cs.FireArrow(attacker.transform.position, defender.transform.position, () =>
@@ -34,14 +34,14 @@ public class RangedBehaviour : CardBehaviour
             yield break;
         }
 
-        Entity target = Services.Get<IBoardState>().GetRandomEnemyFront(ctx.IsMine);
+        Entity target = Services.Get<EntityManager>().GetRandomEnemyFront(ctx.IsMine);
         if (target == null)
         {
             yield break;
         }
 
         int damage = Mathf.Max(1, ctx.Self.health / 3);
-        Services.Get<ICombatSystem>().FirePokeArrow(ctx.Self.transform.position, target, damage); // 후방 카드 자기 위치에서 발사
+        Services.Get<CombatSystem>().FirePokeArrow(ctx.Self.transform.position, target, damage); // 후방 카드 자기 위치에서 발사
 
         yield return ctx.Delay;
     }

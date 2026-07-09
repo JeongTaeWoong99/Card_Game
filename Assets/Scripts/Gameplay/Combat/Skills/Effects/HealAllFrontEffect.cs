@@ -3,7 +3,7 @@ public class HealAllFrontEffect : ISkillEffect
 {
     public void Execute(in SkillContext ctx)
     {
-        foreach (Entity entity in Services.Get<IBoardState>().GetFront(ctx.IsMine))
+        foreach (Entity entity in Services.Get<EntityManager>().GetFront(ctx.IsMine))
         {
             entity.Heal(ctx.Value);
         }

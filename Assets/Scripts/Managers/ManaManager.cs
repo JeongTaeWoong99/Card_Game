@@ -3,7 +3,7 @@ using UnityEngine;
 
 // 양 진영의 마나 상태와 규칙을 소유한다. 턴 시작 시 +1, 최대 3.
 // 스킬 시전 시 마나를 차감하며, 변동은 이벤트로 ManaUI에 알린다 (Observer).
-public class ManaManager : MonoService<IManaManager>, IManaManager
+public class ManaManager : MonoService<ManaManager>
 {
     public const int MaxMana = 3; // 마나 상한 (UI 슬롯 수와 동일)
 

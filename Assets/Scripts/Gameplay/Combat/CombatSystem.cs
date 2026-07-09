@@ -4,7 +4,7 @@ using UnityEngine;
 // 엔티티 간 공격 해석을 담당한다. 모든 전투 피해는 현재 HP의 절반(소수점 버림, 최소 1).
 // 분기: 근접(일반·힐러·방패, 반격 O) / 흡혈(반격 O + 생존 시 회복) / 무쌍(광역, 반격 O) / 원거리(화살, 반격 X).
 // 공통 후처리(이동 정렬 원복 → 사망 정리/재정렬 → 승패 판정)를 한곳에 모았다.
-public class CombatSystem : MonoService<ICombatSystem>, ICombatSystem
+public class CombatSystem : MonoService<CombatSystem>
 {
     // behaviour의 공격 연출이 동일 수치로 계산하도록 공개한다
     public const float MoveTime     = 0.4f; // 근접 공격자 이동(왕복) 한 구간 시간
@@ -60,8 +60,8 @@ public class CombatSystem : MonoService<ICombatSystem>, ICombatSystem
             target.Damaged(dealt);
             SpawnDamage(dealt, target.transform);
 
-            Services.Get<IBoardState>().RemoveDeadAndRealign(target);
-            Services.Get<IGameFlow>().CheckBattleResult();
+            Services.Get<EntityManager>().RemoveDeadAndRealign(target);
+            Services.Get<GameManager>().CheckBattleResult();
         });
     }
 
@@ -81,8 +81,8 @@ public class CombatSystem : MonoService<ICombatSystem>, ICombatSystem
             involved.Add(entity);
         }
 
-        Services.Get<IBoardState>().RemoveDeadAndRealign(involved.ToArray());
-        Services.Get<IGameFlow>().CheckBattleResult();
+        Services.Get<EntityManager>().RemoveDeadAndRealign(involved.ToArray());
+        Services.Get<GameManager>().CheckBattleResult();
     }
 
     #endregion

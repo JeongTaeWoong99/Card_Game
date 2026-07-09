@@ -34,7 +34,7 @@ public class HealerBehaviour : CardBehaviour
     private static Entity PickHealTarget(Entity healer, bool isMine)
     {
         var candidates = new List<Entity>();
-        foreach (Entity entity in Services.Get<IBoardState>().GetFront(isMine))
+        foreach (Entity entity in Services.Get<EntityManager>().GetFront(isMine))
         {
             if (entity != healer && entity.CanHeal)
             {

@@ -5,7 +5,7 @@ using UnityEngine;
 // 게임 흐름을 제어한다.
 // Setup(배치) 페이즈: 손패 6장 분배 → 플레이어/상대가 앞줄 3 + 뒷줄 3을 배치.
 // Battle(전투) 페이즈: 배치 완료 버튼 이후 턴 시작/종료 + 스킬 드로우(현재는 디버그) 이벤트 발행.
-public class TurnManager : MonoService<ITurnManager>, ITurnManager
+public class TurnManager : MonoService<TurnManager>
 {
     // 외부(GameManager 치트 등)에서도 Invoke 해야 하므로 event가 아닌 Action으로 둔다
     public static Action<bool> OnAddCard;
@@ -62,7 +62,7 @@ public class TurnManager : MonoService<ITurnManager>, ITurnManager
             OnAddCard?.Invoke(true);  // 내 카드 한 장
         }
 
-        Services.Get<IGameFlow>().Notification("세팅 턴"); // 배치 단계 안내
+        Services.Get<GameManager>().Notification("세팅 턴"); // 배치 단계 안내
         Services.Get<IEnemyAI>().SetupPlace();                // 상대가 자기 6장을 자동 배치(끝나면 스킬 4장 드로우)
         isLoading = false;                        // 내 배치 입력 허용
     }
@@ -84,7 +84,7 @@ public class TurnManager : MonoService<ITurnManager>, ITurnManager
         phase  = EGamePhase.Battle;
         myTurn = true; // 배치 완료 후 내가 선공
 
-        Services.Get<ICardManager>().DrawSkillCards(true, SetupSkillDraw); // 세팅 완료 시 내 스킬 4장
+        Services.Get<CardManager>().DrawSkillCards(true, SetupSkillDraw); // 세팅 완료 시 내 스킬 4장
 
         StartCoroutine(StartTurnCo());
     }
@@ -96,7 +96,7 @@ public class TurnManager : MonoService<ITurnManager>, ITurnManager
     // 턴 종료 — 턴을 넘기고 다음 턴 시작 (EndTurnBtn 버튼·EnemyAI·치트가 호출)
     public void EndTurn()
     {
-        Services.Get<IBoardState>().TickBuffs(myTurn); // 방금 끝난 진영의 한시 버프 만료
+        Services.Get<EntityManager>().TickBuffs(myTurn); // 방금 끝난 진영의 한시 버프 만료
 
         myTurn = !myTurn;
 
@@ -109,11 +109,11 @@ public class TurnManager : MonoService<ITurnManager>, ITurnManager
         isLoading = true; // 효과가 모두 끝날 때까지 입력 잠금 유지
 
         // 턴 시작 진영 마나 +1 회복
-        Services.Get<IManaManager>().GainMana(myTurn);
+        Services.Get<ManaManager>().GainMana(myTurn);
 
         // 첫 4장은 세팅 완료 시 받았으므로, 첫 전투 턴은 드로우 0, 이후 매 턴 1장
         bool isFirstTurn = myTurn ? _myFirstBattleTurn : _otherFirstBattleTurn;
-        Services.Get<ICardManager>().DrawSkillCards(myTurn, isFirstTurn ? 0 : TurnSkillDraw);
+        Services.Get<CardManager>().DrawSkillCards(myTurn, isFirstTurn ? 0 : TurnSkillDraw);
 
         if (myTurn)
         {
@@ -125,11 +125,11 @@ public class TurnManager : MonoService<ITurnManager>, ITurnManager
         }
 
         // 턴 알림을 먼저 띄우고, 패널이 완전히 사라질 때까지 기다린다 (효과가 알림에 가리지 않게)
-        Services.Get<IGameFlow>().Notification(myTurn ? "나의 턴" : "상대 턴");
+        Services.Get<GameManager>().Notification(myTurn ? "나의 턴" : "상대 턴");
         yield return _notificationDelay;
 
         // 알림이 사라진 뒤 후방/턴시작 효과를 한 장씩 순차로 발동하고, 모두 끝날 때까지 대기한다
-        yield return StartCoroutine(Services.Get<IBoardState>().ProcessTurnStartEffectsCo(myTurn));
+        yield return StartCoroutine(Services.Get<EntityManager>().ProcessTurnStartEffectsCo(myTurn));
 
         isLoading = false;
 

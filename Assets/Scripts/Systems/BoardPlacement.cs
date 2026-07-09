@@ -3,7 +3,7 @@ using UnityEngine;
 
 // 세팅 단계의 카드 배치를 담당한다 — 엔티티 스폰, 드래그 중 빈 슬롯 미리보기, 배치 완료 판정.
 // 보드 상태(진영 행·정렬)는 EntityManager가 소유하고, 이 클래스는 그 위에 "배치 행위"만 얹는다.
-public class BoardPlacement : MonoService<IBoardPlacement>, IBoardPlacement
+public class BoardPlacement : MonoService<BoardPlacement>
 {
     [CenterHeader("< 프리팹 >")]
     [SerializeField] private GameObject _entityPrefab;
@@ -57,7 +57,7 @@ public class BoardPlacement : MonoService<IBoardPlacement>, IBoardPlacement
             rowList.Add(entity);
         }
 
-        Services.Get<IBoardState>().EntityAlignment(isMine, isFrontRow);
+        Services.Get<EntityManager>().EntityAlignment(isMine, isFrontRow);
 
         return true;
     }
@@ -80,7 +80,7 @@ public class BoardPlacement : MonoService<IBoardPlacement>, IBoardPlacement
         entity.Setup(item, true, !isFrontRow); // 내 카드는 항상 앞면, 뒷줄이면 대기 상태
 
         rowList.Add(entity);
-        Services.Get<IBoardState>().EntityAlignment(true, isFrontRow);
+        Services.Get<EntityManager>().EntityAlignment(true, isFrontRow);
 
         return true;
     }
@@ -96,7 +96,7 @@ public class BoardPlacement : MonoService<IBoardPlacement>, IBoardPlacement
         if (ExistEmptyIn(oppositeRow))
         {
             oppositeRow.Remove(_myEmptyEntity);
-            Services.Get<IBoardState>().EntityAlignment(true, !isFront);
+            Services.Get<EntityManager>().EntityAlignment(true, !isFront);
         }
 
         // 대상 행이 가득 찼으면 미리보기를 띄우지 않는다
@@ -105,7 +105,7 @@ public class BoardPlacement : MonoService<IBoardPlacement>, IBoardPlacement
             if (ExistEmptyIn(targetRow))
             {
                 targetRow.Remove(_myEmptyEntity);
-                Services.Get<IBoardState>().EntityAlignment(true, isFront);
+                Services.Get<EntityManager>().EntityAlignment(true, isFront);
             }
 
             _myEmptyEntity.gameObject.SetActive(false);
@@ -129,7 +129,7 @@ public class BoardPlacement : MonoService<IBoardPlacement>, IBoardPlacement
         targetRow.Sort((a, b) => a.transform.position.x.CompareTo(b.transform.position.x));
         if (targetRow.IndexOf(_myEmptyEntity) != beforeIndex)
         {
-            Services.Get<IBoardState>().EntityAlignment(true, isFront);
+            Services.Get<EntityManager>().EntityAlignment(true, isFront);
         }
     }
 
@@ -142,13 +142,13 @@ public class BoardPlacement : MonoService<IBoardPlacement>, IBoardPlacement
         if (ExistEmptyIn(front))
         {
             front.Remove(_myEmptyEntity);
-            Services.Get<IBoardState>().EntityAlignment(true, true);
+            Services.Get<EntityManager>().EntityAlignment(true, true);
         }
 
         if (ExistEmptyIn(back))
         {
             back.Remove(_myEmptyEntity);
-            Services.Get<IBoardState>().EntityAlignment(true, false);
+            Services.Get<EntityManager>().EntityAlignment(true, false);
         }
 
         _myEmptyEntity.gameObject.SetActive(false);
@@ -163,7 +163,7 @@ public class BoardPlacement : MonoService<IBoardPlacement>, IBoardPlacement
     // 보드 상태가 소유한 진영·행 리스트를 가져온다
     private List<Entity> Row(bool isMine, bool isFront)
     {
-        return Services.Get<IBoardState>().GetRow(isMine, isFront);
+        return Services.Get<EntityManager>().GetRow(isMine, isFront);
     }
 
     // 리스트에 미리보기 빈 슬롯이 포함되어 있는지

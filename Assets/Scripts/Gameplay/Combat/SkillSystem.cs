@@ -3,7 +3,7 @@ using UnityEngine;
 
 // 스킬 효과 실행의 진입점·라우터. ESkillEffect → ISkillEffect 매핑에서 효과를 꺼내 실행한다.
 // 효과 로직은 각 ISkillEffect 구현이 담당하고(SRP), 새 효과는 구현 클래스 추가 + 등록 1줄로 확장한다(OCP).
-public class SkillSystem : MonoService<ISkillSystem>, ISkillSystem
+public class SkillSystem : MonoService<SkillSystem>
 {
     [CenterHeader("< 투사체 스킬 발사 위치(포크포인트) >")]
     [SerializeField] private Transform _myCastPoint;    // 내 투사체 스킬 화살 시작 위치

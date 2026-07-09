@@ -4,7 +4,7 @@ using UnityEngine.SceneManagement;
 using DG.Tweening;
 
 // 게임 흐름의 최상위: 프레임 고정, UI 패널 제어, 승패 판정, 게임오버 연출, 치트.
-public class GameManager : MonoService<IGameFlow>, IGameFlow
+public class GameManager : MonoService<GameManager>
 {
     [CenterHeader("< 치트 >")]
     [Multiline(10)]
@@ -76,7 +76,7 @@ public class GameManager : MonoService<IGameFlow>, IGameFlow
     public void StartGame()
     {
         SetGameplayHudActive(true); // 디졸브 후 세팅 로직이 시작되는 시점에 HUD 노출
-        StartCoroutine(Services.Get<ITurnManager>().StartGameCo());
+        StartCoroutine(Services.Get<TurnManager>().StartGameCo());
     }
 
     // 시작 UI 초기 세팅
@@ -157,11 +157,11 @@ public class GameManager : MonoService<IGameFlow>, IGameFlow
     {
         yield return _resultCheckDelay;
 
-        if (Services.Get<IBoardState>().IsMyAllDead)         // 내 카드 전멸 → 패배
+        if (Services.Get<EntityManager>().IsMyAllDead)         // 내 카드 전멸 → 패배
         {
             StartCoroutine(GameOver(false));
         }
-        else if (Services.Get<IBoardState>().IsOtherAllDead) // 상대 카드 전멸 → 승리
+        else if (Services.Get<EntityManager>().IsOtherAllDead) // 상대 카드 전멸 → 승리
         {
             StartCoroutine(GameOver(true));
         }
@@ -180,7 +180,7 @@ public class GameManager : MonoService<IGameFlow>, IGameFlow
         }
         _isGameOver = true;
 
-        Services.Get<ITurnManager>().isLoading = true;
+        Services.Get<TurnManager>().isLoading = true;
         SetGameplayHudActive(false); // 턴종료 버튼 + 양쪽 마나바 숨김
 
         yield return _gameOverDelay;
@@ -214,26 +214,26 @@ public class GameManager : MonoService<IGameFlow>, IGameFlow
         // 3. 턴 종료
         if (CheatKeyDown(KeyCode.Alpha3, KeyCode.Keypad3))
         {
-            Services.Get<ITurnManager>().EndTurn();
+            Services.Get<TurnManager>().EndTurn();
         }
 
         // 4. 내 마나 최대치(10) 충전
         if (CheatKeyDown(KeyCode.Alpha4, KeyCode.Keypad4))
         {
-            Services.Get<IManaManager>().FillMana(true);
+            Services.Get<ManaManager>().FillMana(true);
         }
 
         // 5. 세팅 단계 — 내 손패 전부 자동 배치
         if (CheatKeyDown(KeyCode.Alpha5, KeyCode.Keypad5))
         {
-            Services.Get<ICardManager>().CheatAutoPlaceMyCards();
+            Services.Get<CardManager>().CheatAutoPlaceMyCards();
         }
     }
 
     // 해당 진영 앞줄의 첫 카드를 즉사시키고 제거·승격·승패 판정을 진행한다 (치트용)
     private void KillFrontFirst(bool isMine)
     {
-        var frontList = isMine ? Services.Get<IBoardState>().MyFront : Services.Get<IBoardState>().OtherFront;
+        var frontList = isMine ? Services.Get<EntityManager>().MyFront : Services.Get<EntityManager>().OtherFront;
         if (frontList.Count == 0)
         {
             return;
@@ -241,7 +241,7 @@ public class GameManager : MonoService<IGameFlow>, IGameFlow
 
         var target = frontList[0];
         target.Damaged(9999);
-        Services.Get<IBoardState>().RemoveDeadAndRealign(target);
+        Services.Get<EntityManager>().RemoveDeadAndRealign(target);
         CheckBattleResult();
     }
 

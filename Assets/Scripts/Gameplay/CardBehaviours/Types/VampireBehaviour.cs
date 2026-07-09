@@ -13,7 +13,7 @@ public class VampireBehaviour : CardBehaviour
     {
         attacker.GetComponent<Order>().SetMostFrontOrder(true);
 
-        ICombatSystem cs = Services.Get<ICombatSystem>();
+        CombatSystem cs = Services.Get<CombatSystem>();
         bool attackerDied = false;
 
         DOTween.Sequence()

@@ -24,11 +24,11 @@ public class EnemyAI : MonoService<IEnemyAI>, IEnemyAI
     // 앞줄 3장 → 뒷줄 3장 순으로 자기 손패를 배치한다
     private IEnumerator SetupPlaceCo()
     {
-        bool fast = Services.Get<ITurnManager>().IsFastMode; // 페스트 모드면 딜레이 없이 한순간에 배치
+        bool fast = Services.Get<TurnManager>().IsFastMode; // 페스트 모드면 딜레이 없이 한순간에 배치
 
         for (int i = 0; i < RowCount; i++)
         {
-            Services.Get<ICardManager>().TryPutCard(false, true); // 앞줄
+            Services.Get<CardManager>().TryPutCard(false, true); // 앞줄
             if (!fast)
             {
                 yield return _putDelay;
@@ -37,14 +37,14 @@ public class EnemyAI : MonoService<IEnemyAI>, IEnemyAI
 
         for (int i = 0; i < RowCount; i++)
         {
-            Services.Get<ICardManager>().TryPutCard(false, false); // 뒷줄
+            Services.Get<CardManager>().TryPutCard(false, false); // 뒷줄
             if (!fast)
             {
                 yield return _putDelay;
             }
         }
 
-        Services.Get<ICardManager>().DrawSkillCards(false, TurnManager.SetupSkillDraw); // 배치 완료 시 상대 스킬 4장
+        Services.Get<CardManager>().DrawSkillCards(false, TurnManager.SetupSkillDraw); // 배치 완료 시 상대 스킬 4장
     }
 
     #endregion
@@ -66,13 +66,13 @@ public class EnemyAI : MonoService<IEnemyAI>, IEnemyAI
         yield return UseSkillsCo();
 
         // 스킬(무작위 피해)로 게임이 끝났으면 즉시 중단한다
-        if (Services.Get<ITurnManager>().isLoading)
+        if (Services.Get<TurnManager>().isLoading)
         {
             yield break;
         }
 
         // 공격 가능한 상대 앞줄 엔티티만 모아 순서를 섞는다
-        var attackers = new List<Entity>(Services.Get<IBoardState>().OtherFront).FindAll(x => x.attackable);
+        var attackers = new List<Entity>(Services.Get<EntityManager>().OtherFront).FindAll(x => x.attackable);
         Utils.Shuffle(attackers);
 
         foreach (var attacker in attackers)
@@ -84,8 +84,8 @@ public class EnemyAI : MonoService<IEnemyAI>, IEnemyAI
             }
 
             // 매 공격마다 최신 내 앞줄을 후보로 삼아 무작위 타겟을 고른다 (도발: 방패형이 있으면 방패형만)
-            var defenders = new List<Entity>(Services.Get<IBoardState>().MyFront)
-                .FindAll(target => Services.Get<IBoardState>().CanMeleeTarget(attacker, target));
+            var defenders = new List<Entity>(Services.Get<EntityManager>().MyFront)
+                .FindAll(target => Services.Get<EntityManager>().CanMeleeTarget(attacker, target));
             if (defenders.Count == 0)
             {
                 break;
@@ -102,10 +102,10 @@ public class EnemyAI : MonoService<IEnemyAI>, IEnemyAI
             }
 
             int rand = Random.Range(0, defenders.Count);
-            Services.Get<ICombatSystem>().Attack(attacker, defenders[rand]);
+            Services.Get<CombatSystem>().Attack(attacker, defenders[rand]);
 
             // 공격 도중 게임이 끝나면(전멸 등) 즉시 중단한다
-            if (Services.Get<ITurnManager>().isLoading)
+            if (Services.Get<TurnManager>().isLoading)
             {
                 yield break;
             }
@@ -113,7 +113,7 @@ public class EnemyAI : MonoService<IEnemyAI>, IEnemyAI
             yield return _attackDelay;
         }
 
-        Services.Get<ITurnManager>().EndTurn();
+        Services.Get<TurnManager>().EndTurn();
     }
 
     // 마나가 되는 동안 확률적으로 보유 스킬을 시전한다 (게임 종료 시 즉시 중단)
@@ -121,14 +121,14 @@ public class EnemyAI : MonoService<IEnemyAI>, IEnemyAI
     {
         while (Random.value < SkillCastChance)
         {
-            if (!Services.Get<ICardManager>().TryCastOtherSkill())
+            if (!Services.Get<CardManager>().TryCastOtherSkill())
             {
                 break;
             }
 
             yield return _attackDelay;
 
-            if (Services.Get<ITurnManager>().isLoading)
+            if (Services.Get<TurnManager>().isLoading)
             {
                 yield break;
             }

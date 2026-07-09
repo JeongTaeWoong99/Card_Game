@@ -16,8 +16,8 @@ public class MusouBehaviour : CardBehaviour
     {
         attacker.GetComponent<Order>().SetMostFrontOrder(true);
 
-        ICombatSystem cs = Services.Get<ICombatSystem>();
-        Entity splashTarget = Services.Get<IBoardState>().GetRandomAdjacentFront(defender);
+        CombatSystem cs = Services.Get<CombatSystem>();
+        Entity splashTarget = Services.Get<EntityManager>().GetRandomAdjacentFront(defender);
 
         DOTween.Sequence()
             .Append(attacker.transform.DOMove(defender.originPos, CombatSystem.MoveTime)).SetEase(Ease.InSine)

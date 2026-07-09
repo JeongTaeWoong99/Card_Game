@@ -6,7 +6,7 @@ using DG.Tweening;
 // 전장(보드) 엔티티의 상태를 소유한다: 진영 행 보유 / 정렬 / 사망 제거·승급 / 턴 시작·종료 처리.
 // 세팅 단계 배치(스폰·빈 슬롯 미리보기)는 BoardPlacement, 마우스 입력은 BoardInputController,
 // 전투 해석은 CombatSystem, 상대 턴 행동은 EnemyAI, 승패 판정은 GameManager가 담당한다.
-public class EntityManager : MonoService<IBoardState>, IBoardState
+public class EntityManager : MonoService<EntityManager>
 {
     public  const int   MaxRow          = 3;    // 한 행(앞줄/뒷줄)의 최대 슬롯 수
     private const float BackEffectDelay = 0.3f; // 턴 시작 패시브를 하나씩 보여주기 위한 텀(초)
