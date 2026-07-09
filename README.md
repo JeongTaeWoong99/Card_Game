@@ -134,7 +134,7 @@
 - **ScriptableObject** - 카드 수치(`ItemSO`)·스킬(`SkillSO`)에 더해 **카드 타입별 행동·튜닝(`CardBehaviour` SO)** 까지 데이터로 분리, 코드 수정 없이 밸런스·콘텐츠 조정
 
 ### 디자인 패턴
-- **Service Locator + DIP** - 역할 인터페이스 기반 의존성 관리
+- **Service Locator** - 매니저 접근을 한 곳으로 통일. 교체가 필요한 seam(`IEnemyAI`)만 역할 인터페이스로 분리(DIP)
 - **Strategy** - 카드 타입별 행동 분리
 - **Command** - 스킬 효과 분리
 - **Observer** - 이벤트 기반 UI 갱신
@@ -146,27 +146,31 @@
 
 프로젝트 전반을 **SOLID 원칙과 확장 용이성**을 염두에 두고 설계했고, 개발을 진행하면서 구조를 점진적으로 개편·리팩토링해 다듬었습니다(기능 동작은 그대로 유지).
 
-호출자가 구체 클래스가 아닌 **역할(인터페이스)** 에 의존하도록, 의존 그래프를 `Core/` 한 계층으로 수렴시켰습니다.
+매니저 접근을 `Services` 로케이터 한 곳으로 통일하고, 구현 교체가 실제로 필요한 지점만 **역할(인터페이스)** 로 분리했습니다.
 
 ```
-        ┌───────────────── Core/Contracts (역할 인터페이스 10종) ─────────────────┐
-        │  ICombatSystem · IBoardState · ITurnManager · ISkillSystem · …          │
-        └────────────────────────────────▲───────────────────────────────────────┘
-                                          │ Services.Get<I>()  (DIP)
+        ┌──────────────────────── Services (서비스 로케이터) ────────────────────────┐
+        │  타입 → 인스턴스 등록/조회로 매니저 접근을 한 곳으로 통일                   │
+        │  · 단일 권위 매니저 → 구체 타입 열쇠 (CombatSystem · TurnManager · …)       │
+        │  · 교체 seam → 역할 인터페이스 (IEnemyAI: EnemyAI ↔ TestPlayer)  ← DIP      │
+        └────────────────────────────────▲───────────────────────────────────────────┘
+                                          │ Services.Get<T>()
    ┌──────────────┬──────────────┬────────┴────────┬──────────────┬──────────────┐
  Managers     Controllers      Systems         Gameplay           UI
  TurnManager  BoardInput…      BoardPlacement  CardBehaviours/    ManaUI
  ManaManager                                   Combat/Skills/     ResultPanel
 ```
 
-### 1️⃣ 싱글톤 → 서비스 로케이터 기반 DIP
+### 1️⃣ 싱글톤 → 서비스 로케이터 + seam 인터페이스
 
 **문제** — 매니저 간 참조를 처음에는 전역 `X.Inst` 싱글톤으로 구성했으나, 호출자가 구체 클래스에 직접 의존해 결합도가 높고 교체·테스트가 어려웠습니다.
 
 **방법**
-- `MonoService<T>` — `Awake`에서 자기 자신을 `Services`에 등록하고 `OnDestroy`에서 해제하는 자동 등록 베이스.
-- **역할 인터페이스 10종** (`ICombatSystem`, `IBoardState`, `ITurnManager` …) 도입.
-- 전역 호출 **129곳**을 `X.Inst.foo()` → `Services.Get<I>().foo()` 로 전환.
+- `MonoService<T>` — `Awake`에서 자기 자신을 `Services`에 `T`(등록 열쇠)로 등록하고 `OnDestroy`에서 해제하는 자동 등록 베이스.
+- 전역 호출 **129곳**을 `X.Inst.foo()` → `Services.Get<T>().foo()` 로 전환해 **접근 방식을 통일**.
+- **인터페이스는 전면 적용하지 않고**, "두 번째 구현/모킹이 실제로 필요한가"로 판단해 **교체 seam에만** 도입 (YAGNI):
+  - 교체가 실증되는 상대 AI만 역할 인터페이스 → `IEnemyAI` (`EnemyAI` ↔ 서버 연동 흉내 `TestPlayer`).
+  - 단일 권위 매니저(`TurnManager`·`CombatSystem`·`ManaManager` 등)는 **구체 타입을 열쇠로 등록**(`Services.Get<TurnManager>()`)해 불필요한 인터페이스 이중 관리를 제거.
 
 ```csharp
 public abstract class MonoService<T> : MonoBehaviour where T : class
@@ -176,7 +180,7 @@ public abstract class MonoService<T> : MonoBehaviour where T : class
 }
 ```
 
-**효과** — 호출자가 구체 클래스가 아닌 **"역할"** 에 의존(DIP)하게 되어 결합도가 낮아지고, 구현 교체·모킹이 가능해집니다.
+**효과** — 접근은 로케이터로 일원화한 채, 결합도를 낮춰야 할 seam(`IEnemyAI`)만 역할에 의존(DIP)해 구현 교체·모킹이 가능해집니다. 나머지는 구체 타입이지만 여전히 로케이터로 수명·접근을 통일해, *"무지성 전면 추상화"가 아니라 값을 판단한 적용*이 됩니다.
 
 ### 2️⃣ Strategy 패턴 — 카드 타입 행동 분리
 
@@ -208,7 +212,7 @@ public abstract class MonoService<T> : MonoBehaviour where T : class
 Assets/Scripts/
 ├─ Core/
 │  ├─ DI/          # Services, MonoService<T>
-│  └─ Contracts/   # 역할 인터페이스 10종
+│  └─ Contracts/   # 교체 seam 역할 인터페이스 (IEnemyAI)
 ├─ Gameplay/
 │  ├─ CardBehaviours/  # ICardBehaviour + 타입별 전략
 │  └─ Combat/
