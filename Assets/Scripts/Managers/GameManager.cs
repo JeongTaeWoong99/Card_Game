@@ -19,6 +19,9 @@ public class GameManager : MonoService<GameManager>
     [CenterHeader("< 연출 / 버튼 >")]
     [SerializeField] private CameraEffect _cameraEffect;
 
+    [CenterHeader("< 상대 선택 >")]
+    [SerializeField] private OpponentSelector _opponentSelector; // 게임 시작 시 상대(AI/원격) 구현 결정
+
     [CenterHeader("< 게임플레이 HUD >")] // 타이틀·게임오버 동안 숨기고 세팅 시작 시 켜는 묶음
     [SerializeField] private GameObject   _endTurnBtn;  // ActionBtn
     [SerializeField] private GameObject   _myManaBar;
@@ -75,7 +78,8 @@ public class GameManager : MonoService<GameManager>
     // 게임 시작 — 게임플레이 HUD를 켜고 턴 매니저의 시작 코루틴 가동 (TitlePanel.StartGameClick이 호출)
     public void StartGame()
     {
-        SetGameplayHudActive(true); // 디졸브 후 세팅 로직이 시작되는 시점에 HUD 노출
+        _opponentSelector.ApplySelection(); // 선택된 상대(AI/원격)를 활성화·등록 — StartGameCo가 IEnemyAI를 쓰기 전에
+        SetGameplayHudActive(true);          // 디졸브 후 세팅 로직이 시작되는 시점에 HUD 노출
         StartCoroutine(Services.Get<TurnManager>().StartGameCo());
     }
 
