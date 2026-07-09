@@ -131,7 +131,7 @@
 - **2D URP (Universal Render Pipeline)** - 렌더 파이프라인
 
 ### 데이터 관리
-- **ScriptableObject** - 카드(`ItemSO`)·스킬(`SkillSO`) 수치를 데이터로 분리, 코드 수정 없이 밸런스·콘텐츠 조정
+- **ScriptableObject** - 카드 수치(`ItemSO`)·스킬(`SkillSO`)에 더해 **카드 타입별 행동·튜닝(`CardBehaviour` SO)** 까지 데이터로 분리, 코드 수정 없이 밸런스·콘텐츠 조정
 
 ### 디자인 패턴
 - **Service Locator + DIP** - 역할 인터페이스 기반 의존성 관리
@@ -182,9 +182,9 @@ public abstract class MonoService<T> : MonoBehaviour where T : class
 
 **문제** — 타입별 분기(`switch(CardType)`)가 표시 텍스트·전투 규칙·턴 시작 패시브·공격 연출 등 **여러 곳에 흩어져** 있어, 새 타입 추가 시 모든 분기를 찾아 고쳐야 했습니다.
 
-**방법** — `ICardBehaviour` + 타입별 클래스(`NormalBehaviour`, `RangedBehaviour`, `MusouBehaviour`, `HealerBehaviour`, `ShieldBehaviour`, `VampireBehaviour`)로 분리. 한 카드 타입의 모든 행동이 **한 파일**에 모입니다.
+**방법** — `ICardBehaviour` + 타입별 ScriptableObject(`NormalBehaviour`, `RangedBehaviour`, `MusouBehaviour`, `HealerBehaviour`, `ShieldBehaviour`, `VampireBehaviour`)로 분리. 타입별 **행동 로직은 한 파일**에, **수치·텍스트는 SO 에셋(인스펙터)** 에 모으고, `CardBehaviourRegistrySO`가 `ECardType → behaviour`를 매핑합니다.
 
-**효과** — 새 카드 타입 = **클래스 1개 추가**(기존 코드 무수정). 개방-폐쇄 원칙(OCP)을 만족합니다.
+**효과** — 새 카드 타입 = **behaviour SO 1개 추가 + 레지스트리 등록**(기존 코드 무수정). 개방-폐쇄 원칙(OCP)을 만족하며, 밸런싱 수치는 **재컴파일 없이 인스펙터**에서 조정합니다.
 
 ### 3️⃣ Command 패턴 — 스킬 효과 분리
 
@@ -198,7 +198,7 @@ public abstract class MonoService<T> : MonoBehaviour where T : class
 - **God Class 해체 (SRP)** — 653줄 `EntityManager`를 보드 상태 / 입력(`BoardInputController`) / 배치(`BoardPlacement`) / 진영(`Faction`)으로 책임 분리.
 - **Observer 패턴 (이벤트 기반 UI)** — `ManaManager.ManaChanged → ManaUI`, `TurnManager.OnTurnStarted/OnAddCard`. UI가 상태를 폴링하지 않고 **구독**으로 갱신.
 - **공용 액션 중앙화** — 종료/다시하기/메인메뉴를 `GameManager` 공용 액션으로 모으고, 버튼 `OnClick`을 메서드에 직접 연결(래퍼 패널 제거).
-- **Template Method + readonly struct 컨텍스트** — `CardBehaviour` 베이스가 공통 텍스트 포맷을 처리하고 파생이 원본 데이터만 제공. `SkillContext`·`TurnPassiveContext`는 `readonly struct` + `in` 전달로 의존을 **값으로 주입(힙 할당 0)**.
+- **Template Method + readonly struct 컨텍스트** — `CardBehaviour` 베이스(ScriptableObject)가 공통 텍스트 포맷을 처리하고, 원본 데이터는 **SO 직렬화 필드(인스펙터)**·파생 SO는 타입별 로직만 담당. `SkillContext`·`TurnPassiveContext`는 `readonly struct` + `in` 전달로 의존을 **값으로 주입(힙 할당 0)**.
 
 ---
 
